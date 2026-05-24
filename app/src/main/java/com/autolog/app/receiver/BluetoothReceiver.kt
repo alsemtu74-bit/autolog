@@ -67,7 +67,11 @@ class BluetoothReceiver : BroadcastReceiver() {
                     prefs.edit().putInt("active_vehicle_id", vehicleId).apply()
                     val serviceIntent = Intent(context, LocationService::class.java)
                     serviceIntent.action = LocationService.ACTION_START
-                    context.startForegroundService(serviceIntent)
+                    try {
+                        context.startForegroundService(serviceIntent)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to start LocationService: ${e.message}")
+                    }
                 } else {
                     Log.d(TAG, "Device $deviceName not matched, skipping")
                 }
@@ -78,7 +82,11 @@ class BluetoothReceiver : BroadcastReceiver() {
                     Log.d(TAG, "Stopping LocationService")
                     val serviceIntent = Intent(context, LocationService::class.java)
                     serviceIntent.action = LocationService.ACTION_STOP
-                    context.startService(serviceIntent)
+                    try {
+                        context.startService(serviceIntent)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to stop LocationService: ${e.message}")
+                    }
                 }
             }
         }

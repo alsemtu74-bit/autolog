@@ -48,6 +48,14 @@ class LocationService : Service() {
     }
 
     private fun startTracking() {
+        if (ActivityCompat.checkSelfPermission(
+                this, android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            stopSelf()
+            return
+        }
+
         createNotificationChannel()
         val notification = buildNotification("Запись поездки...")
         startForeground(NOTIFICATION_ID, notification)
@@ -58,6 +66,7 @@ class LocationService : Service() {
         fusedClient = LocationServices.getFusedLocationProviderClient(this)
         totalDistance = 0f
         startTime = System.currentTimeMillis()
+        startLocation = null
 
         val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
             .setMinUpdateDistanceMeters(10f)
@@ -78,14 +87,9 @@ class LocationService : Service() {
             }
         }
 
-        if (ActivityCompat.checkSelfPermission(
-                this, android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            fusedClient?.requestLocationUpdates(
-                request, locationCallback!!, Looper.getMainLooper()
-            )
-        }
+        fusedClient?.requestLocationUpdates(
+            request, locationCallback!!, Looper.getMainLooper()
+        )
     }
 
     private fun stopTracking() {
@@ -122,12 +126,15 @@ class LocationService : Service() {
                     dao.addOdometerDistance(activeVehicleId, km)
                 } catch (e: Exception) {
                     e.printStackTrace()
+                } finally {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
                 }
             }
+        } else {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
         }
-
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
     }
 
     private fun createNotificationChannel() {
