@@ -47,7 +47,7 @@ class AutoLogApplication : Application() {
 
     // ДОБАВЛЕНО: если телефон уже подключён к BT устройству машины при старте —
     // сразу запускаем трекинг не дожидаясь события ACL_CONNECTED
-    private fun checkAlreadyConnectedDevices() {
+    fun checkAlreadyConnectedDevices() {
         appScope.launch {
             try {
                 // Проверяем разрешение
@@ -119,7 +119,11 @@ class AutoLogApplication : Application() {
                         if (!isTracking) {
                             val serviceIntent = Intent(this@AutoLogApplication, LocationService::class.java)
                             serviceIntent.action = LocationService.ACTION_START
-                            startForegroundService(serviceIntent)
+                            try {
+                                startForegroundService(serviceIntent)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
                         break
                     }
